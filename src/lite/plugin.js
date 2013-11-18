@@ -315,7 +315,7 @@ function LiteClass(ed, path) {
                 element: body,
                 isTracking: true,
                 handleEvents: true,
-                mergeBlocks: false,
+                mergeBlocks: true,
                 currentUser: {
                     id: config.userId || "",
                     name: config.userName || ""

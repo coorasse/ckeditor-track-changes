@@ -911,9 +911,12 @@
 			if (insertingDummy && inCurrentUserInsert) return;
 			// If we aren't in an insert node which belongs to the current user, then create a new ins node
 			else if (!inCurrentUserInsert) node = this.createIceNode('insertType', node);
+//			var textLength = (node && node.nodeType == ice.dom.TEXT_NODE) ? ((node.nodeValue && node.nodeValue.length) || 1) : 1
 	
 			range.insertNode(node);
-			range.setEnd(node, 1);
+			range.setStartAfter(node); // dfl set selection to end of insert node instead of 1 offset into itgit status
+			
+//			range.setEnd(node, textLength);
 	
 			if (insertingDummy) {
 			// Create a selection of the dummy character we inserted
@@ -992,11 +995,12 @@
 			}
 	
 			if (this.mergeBlocks && b1 !== b2) {
-			while (betweenBlocks.length)
-				ice.dom.mergeContainers(betweenBlocks.shift(), b1);
-			ice.dom.removeBRFromChild(b2);
-			ice.dom.removeBRFromChild(b1);
-			ice.dom.mergeContainers(b2, b1);
+				while (betweenBlocks.length) {
+					ice.dom.mergeContainers(betweenBlocks.shift(), b1);
+				}
+				ice.dom.removeBRFromChild(b2);
+				ice.dom.removeBRFromChild(b1);
+				ice.dom.mergeContainers(b2, b1);
 			}
 	
 			bookmark.selectBookmark();
@@ -1058,41 +1062,41 @@
 	
 			// Handle cases of the caret is at the end of a container or placed directly in a block element
 			if (initialOffset === initialContainer.data.length && (!ice.dom.hasNoTextOrStubContent(initialContainer))) {
-			nextContainer = ice.dom.getNextNode(initialContainer, this.element);
-	
-			// If the next container is outside of ICE then do nothing.
-			if (!nextContainer) {
-				range.selectNodeContents(initialContainer);
-				range.collapse();
-				return false;
-			}
-	
-			// If the next container is <br> element find the next node
-			if (ice.dom.BREAK_ELEMENT == ice.dom.getTagName(nextContainer)) {
-				nextContainer = ice.dom.getNextNode(nextContainer, this.element);
-			}
-	
-			// If the next container is a text node, look at the parent node instead.
-			if (nextContainer.nodeType === ice.dom.TEXT_NODE) {
-				nextContainer = nextContainer.parentNode;
-			}
-	
-			// If the next container is non-editable, enclose it with a delete ice node and add an empty text node after it to position the caret.
-			if (!nextContainer.isContentEditable) {
-				returnValue = this._addNodeTracking(nextContainer, false, false);
-				var emptySpaceNode = document.createTextNode('');
-				nextContainer.parentNode.insertBefore(emptySpaceNode, nextContainer.nextSibling);
-				range.selectNode(emptySpaceNode);
-				range.collapse(true);
-				return returnValue;
-			}
-	
-			if (this._handleVoidEl(nextContainer, range)) return true;
-	
-			// If the caret was placed directly before a stub element, enclose the element with a delete ice node.
-			if (ice.dom.isChildOf(nextContainer, parentBlock) && ice.dom.isStubElement(nextContainer)) {
-				return this._addNodeTracking(nextContainer, range, false);
-			}
+				nextContainer = ice.dom.getNextNode(initialContainer, this.element);
+		
+				// If the next container is outside of ICE then do nothing.
+				if (!nextContainer) {
+					range.selectNodeContents(initialContainer);
+					range.collapse();
+					return false;
+				}
+		
+				// If the next container is <br> element find the next node
+				if (ice.dom.BREAK_ELEMENT == ice.dom.getTagName(nextContainer)) {
+					nextContainer = ice.dom.getNextNode(nextContainer, this.element);
+				}
+		
+				// If the next container is a text node, look at the parent node instead.
+				if (nextContainer.nodeType === ice.dom.TEXT_NODE) {
+					nextContainer = nextContainer.parentNode;
+				}
+		
+				// If the next container is non-editable, enclose it with a delete ice node and add an empty text node after it to position the caret.
+				if (!nextContainer.isContentEditable) {
+					returnValue = this._addNodeTracking(nextContainer, false, false);
+					var emptySpaceNode = document.createTextNode('');
+					nextContainer.parentNode.insertBefore(emptySpaceNode, nextContainer.nextSibling);
+					range.selectNode(emptySpaceNode);
+					range.collapse(true);
+					return returnValue;
+				}
+		
+				if (this._handleVoidEl(nextContainer, range)) return true;
+		
+				// If the caret was placed directly before a stub element, enclose the element with a delete ice node.
+				if (ice.dom.isChildOf(nextContainer, parentBlock) && ice.dom.isStubElement(nextContainer)) {
+					return this._addNodeTracking(nextContainer, range, false);
+				}
 	
 			}
 	
